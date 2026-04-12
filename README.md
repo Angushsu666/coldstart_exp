@@ -148,6 +148,113 @@ T_sched + T_container = wall_time - (t_model_ms + t_cuda_ms + t_infer_ms)
 
 ---
 
+## Experiment Results
+
+### Scale-to-Zero Baseline (GCP, Tesla T4, n=21 cold / 105 steady)
+
+| Metric | Value |
+|--------|-------|
+| Cold mean | 3873.6 ms |
+| Cold p95 | 4043.7 ms |
+| Steady mean | 389.5 ms |
+| Cold/Steady slowdown | 9.95x |
+
+**Cold start component breakdown:**
+
+| Stage | Field | Mean (ms) | % of wall time |
+|-------|-------|-----------|----------------|
+| Model load | `t_model_ms` | 2603 ms | 67.2% |
+| First inference (TTFT) | `t_infer_ms` | 607 ms | 15.7% |
+| Scheduling + container | `t_sched_container_ms` | 269 ms | 7.0% |
+| CUDA init | `t_cuda_ms` | 249 ms | 6.4% |
+| Model to GPU | `t_to_gpu_ms` | 143 ms | 3.7% |
+| GPU warmup | `t_warmup_ms` | 0 ms | 0.0% |
+
+Full stats (mean/median/p95/p99/stdev) available in `results/final_scale_to_zero.json`.
+
+---
+
+### Container-Warm (GCP, Tesla T4, n=20 cold / 100 steady)
+
+| Metric | Value |
+|--------|-------|
+| Cold mean | 1299.8 ms |
+| Cold p95 | 1385.7 ms |
+| Steady mean | 384.0 ms |
+| Cold/Steady slowdown | 3.38x |
+| vs. scale-to-zero | **3.0x faster** |
+
+**Cold start component breakdown (request path only):**
+
+| Stage | Field | Mean (ms) | % of wall time |
+|-------|-------|-----------|----------------|
+| GPU warmup | `t_warmup_ms` | 420 ms | 32.3% |
+| First inference (TTFT) | `t_infer_ms` | 209 ms | 16.1% |
+| Scheduling + container | `t_sched_container_ms` | 271 ms | 20.9% |
+| CUDA init | `t_cuda_ms` | 257 ms | 19.8% |
+| Model to GPU | `t_to_gpu_ms` | 141 ms | 10.9% |
+| Model load | `t_model_ms` | 0 ms | 0.0% ✅ |
+
+**Startup cost (paid before request, not in wall_time):**
+
+| Stage | Field | Mean (ms) |
+|-------|-------|-----------|
+| Model load to CPU | `startup_model_load_ms` | 2531 ms |
+
+> Note: `t_model_ms` is eliminated from the request path (moved to startup).
+> `t_warmup_ms` (420 ms) is now the largest single component in the cold request.
+
+Full stats available in `results/final_container_warm.json`.
+
+---
+
+### GPU-Warm (GCP, Tesla T4, n=20 cold / 100 steady)
+
+| Metric | Value |
+|--------|-------|
+| Cold mean | 475.5 ms |
+| Cold p95 | 496.9 ms |
+| Steady mean | 383.0 ms |
+| Cold/Steady slowdown | 1.24x |
+| vs. scale-to-zero | **8.1x faster** |
+
+**Cold start component breakdown (request path only):**
+
+| Stage | Field | Mean (ms) | % of wall time |
+|-------|-------|-----------|----------------|
+| Scheduling + container | `t_sched_container_ms` | 270 ms | 56.7% |
+| First inference (TTFT) | `t_infer_ms` | 204 ms | 42.9% |
+| Model load | `t_model_ms` | 0 ms | 0.0% ✅ |
+| CUDA init | `t_cuda_ms` | 0 ms | 0.0% ✅ |
+| Model to GPU | `t_to_gpu_ms` | 0 ms | 0.0% ✅ |
+| GPU warmup | `t_warmup_ms` | 0 ms | 0.0% ✅ |
+
+**Startup cost (paid before request, not in wall_time):**
+
+| Stage | Field | Mean (ms) |
+|-------|-------|-----------|
+| Model load to CPU | `startup_model_load_ms` | 2458 ms |
+| CUDA init | `startup_cuda_init_ms` | 247 ms |
+| Model to GPU | `startup_to_gpu_ms` | 141 ms |
+| GPU warmup | `startup_warmup_ms` | 401 ms |
+| **Total startup** | | **~3247 ms** |
+
+> All initialization moved to startup. Cold request = K8s scheduling + inference only.
+
+Full stats available in `results/final_gpu_warm.json`.
+
+---
+
+### Three-Way Comparison Summary
+
+| warm_level | Cold mean | Cold p95 | Steady mean | Cold/Steady |
+|------------|-----------|----------|-------------|-------------|
+| scale-to-zero | 3873 ms | 4044 ms | 389 ms | 9.95x |
+| container-warm | 1300 ms | 1386 ms | 384 ms | 3.38x |
+| gpu-warm | 475 ms | 497 ms | 383 ms | 1.24x |
+
+---
+
 ## Notes
 
 - `submit_coldstart.sh` is CURC/Slurm specific. Do NOT use it on GCP.

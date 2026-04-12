@@ -1,0 +1,167 @@
+{
+  "source": "results/server_gcp_gpu_warm_raw.jsonl",
+  "gpu": [
+    "Tesla T4"
+  ],
+  "warm_levels": {
+    "gpu-warm": {
+      "cold_start": {
+        "wall_time_ms": {
+          "n": 20,
+          "mean": 475.494,
+          "median": 473.274,
+          "p95": 496.895,
+          "p99": 502.628,
+          "min": 459.11,
+          "max": 504.061,
+          "stdev": 11.376
+        },
+        "total_request_ms": {
+          "n": 20,
+          "mean": 205.767,
+          "median": 203.707,
+          "p95": 228.736,
+          "p99": 233.566,
+          "min": 191.079,
+          "max": 234.774,
+          "stdev": 11.36
+        },
+        "component_breakdown_ms": {
+          "t_sched_container_ms": {
+            "n": 20,
+            "mean": 269.728,
+            "median": 269.597,
+            "p95": 271.947,
+            "p99": 271.984,
+            "min": 267.263,
+            "max": 271.993,
+            "stdev": 1.315
+          },
+          "t_model_ms": {
+            "n": 20,
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "stdev": 0.0
+          },
+          "t_cuda_ms": {
+            "n": 20,
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "stdev": 0.0
+          },
+          "t_to_gpu_ms": {
+            "n": 20,
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "stdev": 0.0
+          },
+          "t_warmup_ms": {
+            "n": 20,
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "stdev": 0.0
+          },
+          "t_infer_ms": {
+            "n": 20,
+            "mean": 204.009,
+            "median": 201.945,
+            "p95": 226.938,
+            "p99": 231.839,
+            "min": 188.587,
+            "max": 233.065,
+            "stdev": 11.35
+          }
+        },
+        "component_pct_of_wall": {
+          "t_sched_container_ms": 56.7,
+          "t_model_ms": 0.0,
+          "t_cuda_ms": 0.0,
+          "t_to_gpu_ms": 0.0,
+          "t_warmup_ms": 0.0,
+          "t_infer_ms": 42.9
+        },
+        "startup_breakdown_ms": {
+          "startup_model_load_ms": {
+            "n": 20,
+            "mean": 2457.769,
+            "median": 2464.903,
+            "p95": 2607.953,
+            "p99": 2638.643,
+            "min": 2299.626,
+            "max": 2646.316,
+            "stdev": 81.865
+          },
+          "startup_cuda_init_ms": {
+            "n": 20,
+            "mean": 247.132,
+            "median": 247.529,
+            "p95": 263.199,
+            "p99": 267.039,
+            "min": 234.074,
+            "max": 267.999,
+            "stdev": 8.981
+          },
+          "startup_to_gpu_ms": {
+            "n": 20,
+            "mean": 140.676,
+            "median": 138.998,
+            "p95": 151.477,
+            "p99": 154.534,
+            "min": 126.756,
+            "max": 155.298,
+            "stdev": 7.499
+          },
+          "startup_warmup_ms": {
+            "n": 20,
+            "mean": 401.381,
+            "median": 394.451,
+            "p95": 437.322,
+            "p99": 450.964,
+            "min": 368.079,
+            "max": 454.375,
+            "stdev": 23.091
+          }
+        }
+      },
+      "steady_state": {
+        "wall_time_ms": {
+          "n": 100,
+          "mean": 382.959,
+          "median": 381.106,
+          "p95": 404.351,
+          "p99": 410.566,
+          "min": 354.718,
+          "max": 422.539,
+          "stdev": 13.409
+        },
+        "t_infer_ms": {
+          "n": 100,
+          "mean": 156.634,
+          "median": 155.176,
+          "p95": 177.564,
+          "p99": 185.077,
+          "min": 128.279,
+          "max": 194.48,
+          "stdev": 13.34
+        }
+      },
+      "cold_vs_steady_slowdown_x": 1.24
+    }
+  }
+}

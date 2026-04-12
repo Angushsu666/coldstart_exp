@@ -1,0 +1,137 @@
+{
+  "source": "results/server_gcp_container_warm_raw.jsonl",
+  "gpu": [
+    "Tesla T4"
+  ],
+  "warm_levels": {
+    "container-warm": {
+      "cold_start": {
+        "wall_time_ms": {
+          "n": 20,
+          "mean": 1299.753,
+          "median": 1292.596,
+          "p95": 1385.666,
+          "p99": 1452.846,
+          "min": 1229.061,
+          "max": 1469.641,
+          "stdev": 54.802
+        },
+        "total_request_ms": {
+          "n": 20,
+          "mean": 1028.616,
+          "median": 1024.491,
+          "p95": 1116.881,
+          "p99": 1183.152,
+          "min": 955.922,
+          "max": 1199.72,
+          "stdev": 55.229
+        },
+        "component_breakdown_ms": {
+          "t_sched_container_ms": {
+            "n": 20,
+            "mean": 271.137,
+            "median": 270.698,
+            "p95": 275.825,
+            "p99": 275.89,
+            "min": 267.555,
+            "max": 275.906,
+            "stdev": 2.648
+          },
+          "t_model_ms": {
+            "n": 20,
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "stdev": 0.0
+          },
+          "t_cuda_ms": {
+            "n": 20,
+            "mean": 257.243,
+            "median": 248.495,
+            "p95": 267.102,
+            "p99": 365.649,
+            "min": 241.425,
+            "max": 390.286,
+            "stdev": 31.939
+          },
+          "t_to_gpu_ms": {
+            "n": 20,
+            "mean": 141.2,
+            "median": 140.692,
+            "p95": 150.412,
+            "p99": 153.605,
+            "min": 133.49,
+            "max": 154.403,
+            "stdev": 4.935
+          },
+          "t_warmup_ms": {
+            "n": 20,
+            "mean": 419.676,
+            "median": 424.361,
+            "p95": 456.687,
+            "p99": 463.435,
+            "min": 377.759,
+            "max": 465.122,
+            "stdev": 25.703
+          },
+          "t_infer_ms": {
+            "n": 20,
+            "mean": 209.269,
+            "median": 204.495,
+            "p95": 232.073,
+            "p99": 270.043,
+            "min": 172.876,
+            "max": 279.535,
+            "stdev": 22.318
+          }
+        },
+        "component_pct_of_wall": {
+          "t_sched_container_ms": 20.9,
+          "t_model_ms": 0.0,
+          "t_cuda_ms": 19.8,
+          "t_to_gpu_ms": 10.9,
+          "t_warmup_ms": 32.3,
+          "t_infer_ms": 16.1
+        },
+        "startup_breakdown_ms": {
+          "startup_model_load_ms": {
+            "n": 20,
+            "mean": 2530.846,
+            "median": 2480.532,
+            "p95": 2915.358,
+            "p99": 2959.74,
+            "min": 2360.865,
+            "max": 2970.835,
+            "stdev": 164.133
+          }
+        }
+      },
+      "steady_state": {
+        "wall_time_ms": {
+          "n": 100,
+          "mean": 384.031,
+          "median": 384.755,
+          "p95": 403.877,
+          "p99": 415.101,
+          "min": 348.665,
+          "max": 447.629,
+          "stdev": 14.1
+        },
+        "t_infer_ms": {
+          "n": 100,
+          "mean": 157.75,
+          "median": 158.216,
+          "p95": 176.394,
+          "p99": 188.229,
+          "min": 122.879,
+          "max": 222.276,
+          "stdev": 13.75
+        }
+      },
+      "cold_vs_steady_slowdown_x": 3.38
+    }
+  }
+}
