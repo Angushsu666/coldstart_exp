@@ -193,7 +193,7 @@ Full stats (mean/median/p95/p99/stdev) available in `results/final_scale_to_zero
 | Scheduling + container | `t_sched_container_ms` | 271 ms | 20.9% |
 | CUDA init | `t_cuda_ms` | 257 ms | 19.8% |
 | Model to GPU | `t_to_gpu_ms` | 141 ms | 10.9% |
-| Model load | `t_model_ms` | 0 ms | 0.0% ✅ |
+| Model load | `t_model_ms` | 0 ms | 0.0%  |
 
 **Startup cost (paid before request, not in wall_time):**
 
@@ -224,10 +224,10 @@ Full stats available in `results/final_container_warm.json`.
 |-------|-------|-----------|----------------|
 | Scheduling + container | `t_sched_container_ms` | 270 ms | 56.7% |
 | First inference (TTFT) | `t_infer_ms` | 204 ms | 42.9% |
-| Model load | `t_model_ms` | 0 ms | 0.0% ✅ |
-| CUDA init | `t_cuda_ms` | 0 ms | 0.0% ✅ |
-| Model to GPU | `t_to_gpu_ms` | 0 ms | 0.0% ✅ |
-| GPU warmup | `t_warmup_ms` | 0 ms | 0.0% ✅ |
+| Model load | `t_model_ms` | 0 ms | 0.0%  |
+| CUDA init | `t_cuda_ms` | 0 ms | 0.0%  |
+| Model to GPU | `t_to_gpu_ms` | 0 ms | 0.0% |
+| GPU warmup | `t_warmup_ms` | 0 ms | 0.0%  |
 
 **Startup cost (paid before request, not in wall_time):**
 

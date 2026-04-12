@@ -56,7 +56,7 @@ Container-warm loads the model to CPU memory at container startup, before any re
 | CUDA init | 257 ms | 19.8% |
 | First inference | 209 ms | 16.1% |
 | Model to GPU | 141 ms | 10.9% |
-| Model load | 0 ms | 0.0% ✅ |
+| Model load | 0 ms | 0.0%  |
 
 Now that model loading is gone, warmup (420ms) becomes the biggest component. This is the dummy forward pass that "warms up" the GPU kernels before real inference. Because of this warmup, `t_infer_ms` drops from ~607ms (scale-to-zero) to ~209ms — the warmup basically pre-pays the kernel compilation cost so actual inference is faster.
 
@@ -82,10 +82,10 @@ GPU-warm moves everything to startup: model load, CUDA init, model-to-GPU transf
 |-------|------|----------------|
 | Scheduling + container | 270 ms | 56.7% |
 | First inference | 204 ms | 42.9% |
-| Model load | 0 ms | 0.0% ✅ |
-| CUDA init | 0 ms | 0.0% ✅ |
-| Model to GPU | 0 ms | 0.0% ✅ |
-| GPU warmup | 0 ms | 0.0% ✅ |
+| Model load | 0 ms | 0.0%  |
+| CUDA init | 0 ms | 0.0%  |
+| Model to GPU | 0 ms | 0.0%  |
+| GPU warmup | 0 ms | 0.0%  |
 
 Four components are now 0ms. The only things left are Kubernetes pod scheduling (~270ms) and the actual inference (~204ms). At this point there's basically nothing left to optimize from the application side — the scheduling delay is a Kubernetes infrastructure cost that can't be avoided without keeping the pod alive permanently.
 
