@@ -17,7 +17,7 @@ world_size = int(os.environ.get("WORLD_SIZE", 1))
 t_nccl_start = now_ms() - t0
 dist.init_process_group(backend="nccl")
 torch.cuda.set_device(rank)
-dist.barrier()
+dist.barrier(device_ids=[rank])
 torch.cuda.synchronize()
 t_nccl_end = now_ms() - t0
 

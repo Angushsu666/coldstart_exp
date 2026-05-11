@@ -1,0 +1,35 @@
+{
+  "source": "results/nccl.jsonl",
+  "host": "c3gpu-a9-u31-1.rc.int.colorado.edu",
+  "partition": "CURC Alpine aa100",
+  "gpu": "NVIDIA A100 80GB PCIe",
+  "world_size": 2,
+  "backend": "nccl",
+  "measurement": "time from init_process_group through dist.barrier() and torch.cuda.synchronize()",
+  "nccl_init_ms": {
+    "cold_first_run": {
+      "n": 1,
+      "value": 2332.234,
+      "note": "Cold NCCL driver init — CUDA driver + NCCL shared libs loaded for first time"
+    },
+    "warm_runs_2_to_20": {
+      "n": 19,
+      "min": 508.121,
+      "p50": 520.307,
+      "mean": 521.136,
+      "p95": 532.879,
+      "max": 535.564,
+      "stdev": 7.155,
+      "note": "Driver resident; pure communicator re-init cost"
+    },
+    "all_runs_combined": {
+      "n": 20,
+      "min": 508.121,
+      "p50": 520.865,
+      "mean": 611.691,
+      "p95": 625.398,
+      "max": 2332.234,
+      "stdev": 394.781
+    }
+  }
+}

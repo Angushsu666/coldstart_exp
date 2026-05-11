@@ -1,17 +1,53 @@
-# Cold Start Measurement — DistilGPT-2 on GPU
+# Cold Start Decomposition for GPU LLM Inference
+
+**TL;DR.** End-to-end Kubernetes/GKE benchmark that decomposes GPU LLM inference
+cold start into 6 measured components, evaluates three warm-pool strategies, and
+quantifies the cost–latency tradeoff. NCCL distributed init measured separately
+on 2×A100 80GB.
+
+![Component decomposition](figures/fig2_breakdown.png)
+
+**Key findings**
+
+- **Model loading dominates baseline** — 67% of 3.87s scale-to-zero cold start.
+- **GPU-warm cuts p95 8.1×** — 4.04s → 497ms; cold becomes indistinguishable from warm (1.24× slowdown).
+- **All strategies do the same total work** — they differ only in *when* the work is paid (request path vs container startup).
+- **NCCL communicator init is a first-class cold start component** — 2.33s on the first run (comparable to T_model on A100), settling to ~520ms once the driver is resident.
+- **GPU-warm pays for itself above ~2.35 req/s** — derived cost break-even between always-on GPU and scale-to-zero.
+
+## Reproduce the figures
+
+```bash
+make figures      # one-shot: creates .venv, installs matplotlib, regenerates figures/*.png
+```
+
+## Figures
+
+| File | Question it answers |
+|------|---------------------|
+| [figures/fig1_warmlevel.png](figures/fig1_warmlevel.png) | How much does each strategy cut cold start? |
+| [figures/fig2_breakdown.png](figures/fig2_breakdown.png) | Where does cold start time go? |
+| [figures/fig3_nccl.png](figures/fig3_nccl.png) | How much overhead does distributed init add? |
+| [figures/fig4_cost.png](figures/fig4_cost.png) | When does always-on GPU pay for itself? |
+
+---
 
 ## Project Structure
 
 ```
 coldstart_exp/
-├── server.py            # FastAPI inference server (for GCP/Kubernetes)
-├── measure_single.py    # Standalone cold start measurement script (for CURC)
-├── measure_nccl.py      # NCCL distributed init measurement (for CURC, 2 GPU)
-├── summarize_jsonl.py   # Stats summary (p50/p95/p99) for CURC results
-├── submit_coldstart.sh  # Slurm batch job script (CURC only, do NOT use on GCP)
-├── Dockerfile           # Container image for GCP deployment
-├── requirements.txt     # Python dependencies
-└── results/             # Output directory for measurement data
+├── server.py              # FastAPI inference server (GKE deployment)
+├── measure_single.py      # Standalone cold start measurement (CURC Alpine)
+├── measure_nccl.py        # NCCL distributed init measurement (CURC, 2 GPU)
+├── Dockerfile             # Container image for GCP deployment
+├── requirements.txt       # Production deps (torch, transformers, fastapi)
+├── requirements-dev.txt   # Plot-only deps (matplotlib, numpy)
+├── Makefile               # `make figures` to reproduce plots
+├── scripts/
+│   ├── make_figures.py    # Generates figures/*.png from results/
+│   └── summarize_jsonl.py # Stats summary (p50/p95/p99)
+├── results/               # Raw JSONL + final_*.json summaries
+└── figures/               # Generated plots (committed for visibility)
 ```
 
 ---
@@ -150,6 +186,10 @@ T_sched + T_container = wall_time - (t_model_ms + t_cuda_ms + t_infer_ms)
 
 ## Experiment Results
 
+> **Hardware note.** GCP experiments use DistilGPT-2 (82M params) on NVIDIA Tesla T4.
+> NCCL `T_dist` experiments use 2×NVIDIA A100 80GB PCIe on CURC Alpine's `aa100` partition
+> (host `c3gpu-a9-u31-1`). These are two independent setups; do not conflate them.
+
 ### Scale-to-Zero Baseline (GCP, Tesla T4, n=21 cold / 105 steady)
 
 | Metric | Value |
@@ -252,6 +292,27 @@ Full stats available in `results/final_gpu_warm.json`.
 | scale-to-zero | 3873 ms | 4044 ms | 389 ms | 9.95x |
 | container-warm | 1300 ms | 1386 ms | 384 ms | 3.38x |
 | gpu-warm | 475 ms | 497 ms | 383 ms | 1.24x |
+
+---
+
+### Distributed Init `T_dist` (CURC Alpine, 2×A100 80GB PCIe, world_size=2, n=20)
+
+Measured independently via `torchrun measure_nccl.py`. Each trial calls
+`init_process_group(backend="nccl")` from a fresh process, followed by
+`dist.barrier(device_ids=[rank])` and `torch.cuda.synchronize()`.
+
+| Condition | n | Mean (ms) | p50 (ms) | p95 (ms) | Note |
+|-----------|---|-----------|----------|----------|------|
+| First run (NCCL driver cold) | 1 | 2332 | 2332 | — | CUDA driver + NCCL libs loaded for first time |
+| Runs 2–20 (driver warm) | 19 | 521 | 520 | 533 | Pure communicator re-init |
+| All runs combined | 20 | 612 | 521 | 625 | — |
+
+Cold NCCL init (2332 ms) is comparable in magnitude to `T_model` on A100,
+making it a first-class cold start component in multi-GPU deployments and
+motivating a *distributed-warm* pooling strategy (pre-create NCCL communicators
+at container startup).
+
+Full stats in `results/final_nccl.json`. Raw trials in `results/nccl.jsonl`.
 
 ---
 
