@@ -1,0 +1,125 @@
+{
+  "source": "results/server_gcp_scale_to_0_raw.jsonl",
+  "gpu": [
+    "Tesla T4"
+  ],
+  "warm_levels": {
+    "scale-to-zero": {
+      "cold_start": {
+        "wall_time_ms": {
+          "n": 21,
+          "mean": 3873.602,
+          "median": 3852.01,
+          "p95": 4043.734,
+          "p99": 4106.819,
+          "min": 3742.703,
+          "max": 4122.59,
+          "stdev": 111.435
+        },
+        "total_request_ms": {
+          "n": 21,
+          "mean": 3604.123,
+          "median": 3581.241,
+          "p95": 3773.049,
+          "p99": 3836.897,
+          "min": 3473.255,
+          "max": 3852.859,
+          "stdev": 111.019
+        },
+        "component_breakdown_ms": {
+          "t_sched_container_ms": {
+            "n": 21,
+            "mean": 269.478,
+            "median": 269.401,
+            "p95": 272.453,
+            "p99": 272.973,
+            "min": 266.643,
+            "max": 273.103,
+            "stdev": 1.714
+          },
+          "t_model_ms": {
+            "n": 21,
+            "mean": 2603.061,
+            "median": 2583.383,
+            "p95": 2778.311,
+            "p99": 2789.595,
+            "min": 2451.53,
+            "max": 2792.416,
+            "stdev": 101.671
+          },
+          "t_cuda_ms": {
+            "n": 21,
+            "mean": 248.765,
+            "median": 249.995,
+            "p95": 260.609,
+            "p99": 265.156,
+            "min": 229.833,
+            "max": 266.293,
+            "stdev": 9.106
+          },
+          "t_to_gpu_ms": {
+            "n": 21,
+            "mean": 142.967,
+            "median": 139.409,
+            "p95": 153.605,
+            "p99": 165.2,
+            "min": 130.75,
+            "max": 168.099,
+            "stdev": 8.563
+          },
+          "t_warmup_ms": {
+            "n": 21,
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "p99": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "stdev": 0.0
+          },
+          "t_infer_ms": {
+            "n": 21,
+            "mean": 606.952,
+            "median": 601.622,
+            "p95": 672.592,
+            "p99": 673.11,
+            "min": 543.653,
+            "max": 673.239,
+            "stdev": 31.756
+          }
+        },
+        "component_pct_of_wall": {
+          "t_sched_container_ms": 7.0,
+          "t_model_ms": 67.2,
+          "t_cuda_ms": 6.4,
+          "t_to_gpu_ms": 3.7,
+          "t_warmup_ms": 0.0,
+          "t_infer_ms": 15.7
+        }
+      },
+      "steady_state": {
+        "wall_time_ms": {
+          "n": 105,
+          "mean": 389.459,
+          "median": 388.427,
+          "p95": 410.275,
+          "p99": 468.348,
+          "min": 360.327,
+          "max": 495.663,
+          "stdev": 19.617
+        },
+        "t_infer_ms": {
+          "n": 105,
+          "mean": 162.724,
+          "median": 162.117,
+          "p95": 184.789,
+          "p99": 238.641,
+          "min": 133.941,
+          "max": 260.808,
+          "stdev": 18.995
+        }
+      },
+      "cold_vs_steady_slowdown_x": 9.95
+    }
+  }
+}
