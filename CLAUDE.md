@@ -33,8 +33,21 @@ ResNet50/MIG data and not part of the paper's measurements.
   nodes have memory/CPU limits and sysadmin will kill the process.
 - **ALWAYS submit GPU work via `sbatch`**. See `submit_coldstart.sh` as the
   template. Output lands in `slurm-<JOBID>.out`.
-- **Conda env**: `module load anaconda && conda activate coldstart`. Already
-  has torch 2.5.1 + cu121.
+- **Module tree differs by node type**:
+    - **Login nodes** (`login-ci*`): `anaconda` Lmod module is NOT available.
+      Do NOT try `module load anaconda` here. Login is for editing + git +
+      sbatch submission only — never run `python` interactively here.
+    - **Compute nodes** (sinteractive / sbatch job): `anaconda` Lmod module
+      IS available. The pattern `module purge && module load anaconda &&
+      conda activate coldstart` works on compute nodes. This is what
+      `submit_coldstart.sh` uses and it works correctly.
+- **Conda envs** live in `/projects/$USER/software/anaconda/envs/`. The
+  `coldstart` env has torch 2.5.1 + cu121. For Llama-3 work (Day 4+),
+  create a separate `vllm-coldstart` env (inside an sbatch job, not on
+  login) to avoid version conflicts.
+- **Interactive GPU testing** (not normally needed): use sinteractive on
+  the `atesting_a100` partition (qos=testing, short time limit) — faster
+  to schedule than `aa100` because of the testing qos.
 - **HuggingFace cache**: set `HF_HOME=/scratch/alpine/$USER/hf_cache` in
   sbatch scripts. `/home` has tight quota; large model weights will fill it.
 - **Quick partition check**: `sinfo -p aa100` to see availability before
