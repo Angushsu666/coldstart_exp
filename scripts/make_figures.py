@@ -256,9 +256,72 @@ def fig4_cost_pareto():
     print(f"wrote {out}")
 
 
+def fig5_dist_warm():
+    """Cold pattern vs distributed-warm per-request NCCL cost (log scale)."""
+    cold_rows = [json.loads(l) for l in open(RESULTS / "nccl.jsonl")]
+    cold_vals = [r["nccl_init_ms"] for r in cold_rows]
+
+    dw_rows = [json.loads(l) for l in open(RESULTS / "dist_warm.jsonl")]
+    dw_trials = sorted(
+        [r for r in dw_rows if r["record_type"] == "trial"],
+        key=lambda r: r["trial_idx"],
+    )
+    dw_vals = [r["t_request_ms"] for r in dw_trials]
+    dw_startup = next(r["t_startup_ms"] for r in dw_rows if r["record_type"] == "startup")
+
+    requests = list(range(1, len(cold_vals) + 1))
+
+    cold_steady = np.array(cold_vals[1:])
+    dw_steady = np.array(dw_vals[1:])
+    cold_steady_mean = cold_steady.mean()
+    dw_steady_mean = dw_steady.mean()
+    speedup = cold_steady_mean / dw_steady_mean
+
+    fig, ax = plt.subplots(figsize=(8.5, 5.2))
+
+    ax.semilogy(requests, cold_vals, "o-", color="#d62728", lw=2, markersize=6,
+                label="Cold pattern (fresh process per request)")
+    ax.semilogy(requests, dw_vals, "s-", color="#2ca02c", lw=2, markersize=6,
+                label="Distributed-warm (persistent process)")
+
+    ax.axhline(cold_steady_mean, color="#d62728", ls=":", alpha=0.5,
+               label=f"Cold steady {cold_steady_mean:.0f} ms")
+    ax.axhline(dw_steady_mean, color="#2ca02c", ls=":", alpha=0.5,
+               label=f"Dist-warm steady {dw_steady_mean:.2f} ms")
+
+    ax.annotate(f"{cold_vals[0]:.0f} ms\n(NCCL driver cold)",
+                xy=(1, cold_vals[0]), xytext=(3.5, 5500),
+                fontsize=9, color="#d62728",
+                arrowprops=dict(arrowstyle="->", color="#d62728", alpha=0.7))
+    ax.annotate(f"{dw_vals[0]:.1f} ms\n(first all_reduce after init)",
+                xy=(1, dw_vals[0]), xytext=(3.5, 2.5),
+                fontsize=9, color="#2ca02c",
+                arrowprops=dict(arrowstyle="->", color="#2ca02c", alpha=0.7))
+
+    ax.set_xlabel("Request #")
+    ax.set_ylabel("NCCL operation latency (ms, log scale)")
+    ax.set_title(f"Distributed-warm eliminates per-request NCCL setup — {speedup:.0f}× speedup on steady-state\n"
+                 f"(CURC Alpine, 2×A100 80GB PCIe, world_size=2, n=20)")
+    ax.grid(True, which="both", alpha=0.3)
+    ax.set_axisbelow(True)
+    ax.legend(loc="center right", fontsize=9, framealpha=0.95)
+    ax.set_xticks([1, 5, 10, 15, 20])
+    ax.set_ylim(0.01, 1e4)
+
+    ax.text(0.02, 0.02,
+            f"Dist-warm one-time NCCL startup: {dw_startup:.0f} ms (paid once, not per request)",
+            transform=ax.transAxes, fontsize=8, style="italic", color="#444")
+
+    out = FIGURES / "fig5_dist_warm.png"
+    plt.savefig(out)
+    plt.close()
+    print(f"wrote {out}")
+
+
 if __name__ == "__main__":
     fig1_warmlevel_comparison()
     fig2_component_breakdown()
     fig3_nccl()
     fig4_cost_pareto()
+    fig5_dist_warm()
     print("\nAll figures saved to figures/")

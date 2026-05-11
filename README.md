@@ -13,6 +13,7 @@ on 2×A100 80GB.
 - **GPU-warm cuts p95 8.1×** — 4.04s → 497ms; cold becomes indistinguishable from warm (1.24× slowdown).
 - **All strategies do the same total work** — they differ only in *when* the work is paid (request path vs container startup).
 - **NCCL communicator init is a first-class cold start component** — 2.33s on the first run (comparable to T_model on A100), settling to ~520ms once the driver is resident.
+- **Distributed-warm eliminates per-request NCCL setup — 7400× speedup** — measured 521 ms (cold pattern) vs 0.07 ms (dist-warm) on steady-state per-request cost; turns paper Section 4.9's motivated strategy into measured evidence.
 - **GPU-warm pays for itself above ~2.35 req/s** — derived cost break-even between always-on GPU and scale-to-zero.
 
 ## Reproduce the figures
@@ -29,6 +30,7 @@ make figures      # one-shot: creates .venv, installs matplotlib, regenerates fi
 | [figures/fig2_breakdown.png](figures/fig2_breakdown.png) | Where does cold start time go? |
 | [figures/fig3_nccl.png](figures/fig3_nccl.png) | How much overhead does distributed init add? |
 | [figures/fig4_cost.png](figures/fig4_cost.png) | When does always-on GPU pay for itself? |
+| [figures/fig5_dist_warm.png](figures/fig5_dist_warm.png) | How much does distributed-warm save per request? |
 
 ---
 
@@ -313,6 +315,31 @@ motivating a *distributed-warm* pooling strategy (pre-create NCCL communicators
 at container startup).
 
 Full stats in `results/final_nccl.json`. Raw trials in `results/nccl.jsonl`.
+
+---
+
+### Distributed-Warm Implementation (CURC Alpine, 2×A100 80GB PCIe, world_size=2, n=20)
+
+Measures the *distributed-warm* strategy motivated above: a long-running 2-process
+pair calls `init_process_group(backend="nccl")` once at startup, then serves N
+sequential "requests" (each a 1-element float32 `all_reduce` + `cuda.synchronize()`).
+This is the implementation of what paper Section 4.9 motivates.
+
+| Phase | n | Mean (ms) | p50 (ms) | p95 (ms) | Note |
+|-------|---|-----------|----------|----------|------|
+| Startup (one-time) | 1 | 2621 | — | — | NCCL init paid once |
+| Trial 0 (first request) | 1 | 48.8 | — | — | First-touch overhead (kernel cache, allocator) |
+| Trials 1–19 (steady state) | 19 | **0.07** | 0.069 | 0.080 | Pure communicator reuse |
+
+**Comparison vs cold pattern** (each request = fresh process pair):
+
+| Metric | Cold pattern | Distributed-warm | Speedup |
+|--------|--------------|------------------|---------|
+| Per-request NCCL cost (steady) | 521 ms | 0.07 ms | **7406×** |
+| First-request cost | 2332 ms (cold driver) | 48.8 ms | 48× |
+
+See [figures/fig5_dist_warm.png](figures/fig5_dist_warm.png) for the visual.
+Raw trials in `results/dist_warm.jsonl`.
 
 ---
 
