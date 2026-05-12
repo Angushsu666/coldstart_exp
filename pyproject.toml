@@ -1,0 +1,14 @@
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+# Pyflakes (F) catches real bugs — unused imports, undefined names, etc.
+# Pycodestyle errors (E) catch syntax-adjacent issues.
+# We skip stylistic-only checks that are noise on a research repo.
+select = ["E", "F", "W"]
+ignore = [
+    "E501",  # line-too-long: many docstring lines exceed; line-length=120 is generous already
+    "E401",  # multiple-imports-on-one-line: legal Python, no bug risk
+    "E741",  # ambiguous-variable-name: `l` for `line` is fine in tight scopes
+]

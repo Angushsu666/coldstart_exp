@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install ruff
+        run: pip install ruff
+      - name: Run ruff
+        run: ruff check .
+
+  reproduce-figures:
+    name: Reproduce figures (smoke test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install plot deps
+        run: pip install -r requirements-dev.txt
+      - name: Regenerate figures
+        run: python scripts/make_figures.py
+      - name: Verify all 5 figures exist
+        run: |
+          for f in fig1_warmlevel fig2_breakdown fig3_nccl fig4_cost fig5_dist_warm; do
+            test -f "figures/${f}.png" || { echo "MISSING: figures/${f}.png"; exit 1; }
+          done
+          echo "All 5 figures regenerated successfully."

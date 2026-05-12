@@ -1,5 +1,7 @@
 # Cold Start Decomposition for GPU LLM Inference
 
+[![CI](https://github.com/Angushsu666/coldstart_exp/actions/workflows/ci.yml/badge.svg)](https://github.com/Angushsu666/coldstart_exp/actions/workflows/ci.yml)
+
 > Decomposes GPU LLM inference cold start into **6 measured components** across
 > two independent deployments (GCP GKE + CURC HPC), evaluates **4 warm-pool
 > strategies**, and quantifies the cost–latency tradeoff. Implements and measures

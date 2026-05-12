@@ -151,7 +151,7 @@ def main():
         print(f"  Cold wall_time  — mean: {cs['mean']} ms | p95: {cs['p95']} ms | n={cs['n']}")
         print(f"  Steady wall_time— mean: {ss['mean']} ms | p95: {ss['p95']} ms | n={ss['n']}")
         print(f"  Cold/Steady slowdown: {entry['cold_vs_steady_slowdown_x']}x")
-        print(f"  Breakdown (% of wall):")
+        print("  Breakdown (% of wall):")
         for comp, pct in bd.items():
             mean_ms = entry["cold_start"]["component_breakdown_ms"][comp]["mean"]
             print(f"    {comp:<25} {pct:>5}%  ({mean_ms} ms)")
