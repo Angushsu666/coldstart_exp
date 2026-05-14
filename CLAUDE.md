@@ -65,8 +65,8 @@ ResNet50/MIG data and not part of the paper's measurements.
   hoping to re-roll the queue — it makes the next submit even slower.
 - Backfill rewards small + short jobs. Prefer:
     - `--time=00:15:00` for dist-warm (5min real work)
-    - `--time=00:45:00` per warm-level run for Llama-3 vLLM (one cold start
-      + N trials)
+    - `--time=00:45:00` for vLLM Llama-3 cold start decomposition
+      (~30s × 10 cold spawns + buffer)
 - ALWAYS validate first: `sbatch --test-only <script>` checks syntax and
   partition without consuming a queue slot.
 - Useful queries:
@@ -104,15 +104,31 @@ before producing the first token.
 - **TP degree must divide attention head count**. Llama-3-8B has 32 heads;
   TP ∈ {1, 2, 4, 8, 16, 32} valid. We use 2 (one per GPU).
 - **vLLM cold start is non-trivial**: in addition to T_model and T_cuda, vLLM
-  profiles available KV cache memory and pre-allocates PagedAttention pages
-  at startup. Expect overall startup ~30–60s for 8B at TP=2; instrument it
-  similarly to `server.py`'s warm-level pattern.
-- **Warm levels for Llama-3 experiment** (port the GKE pattern to vLLM):
-    - scale-to-zero: cold launch vLLM per trial
-    - container-warm: vLLM process up, model on CPU, GPU not loaded
-    - gpu-warm: vLLM fully ready (weights on GPU + KV cache allocated)
-- Output to `results/vllm_llama3_<warm_level>.jsonl`; aggregate to
-  `results/final_vllm_llama3.json`.
+  profiles available GPU memory and pre-allocates PagedAttention KV cache
+  pages at startup. Expect overall startup ~30–60s for 8B at TP=2.
+- **The Llama-3 experiment is NOT a port of the GKE three-warm-level setup.**
+  CURC Alpine is a Slurm HPC environment with no K8s pod lifecycle, and vLLM
+  does not have a "container-warm" mode (it loads model weights at startup).
+  Forcing the GKE taxonomy onto Slurm would be a framework mismatch.
+- **Day 5 experiment design** (single sbatch job on aa100, ~30 min wall time):
+    1. **Cold start decomposition** (n=10 trials): spawn fresh vLLM `LLM(...)`
+       constructor each trial; instrument per-stage timing:
+         - `T_python_import`   importing vllm
+         - `T_model`           Llama-3-8B safetensors load
+         - `T_cuda`            CUDA context creation
+         - `T_dist`            NCCL communicator init (TP=2)
+         - `T_kvcache_profile` vLLM probe of available GPU memory
+         - `T_kvcache_alloc`   PagedAttention page allocation
+         - `T_first_token`     TTFT after engine ready
+       Writes `results/vllm_llama3_cold.jsonl`. The last two stages are
+       vLLM-specific framework components NOT in the paper's 6-stage model.
+    2. **(Optional) Cold vs warm comparison** (n=5 + n=5): same vLLM engine,
+       compare "request after fresh spawn" vs "request after idle wait". This
+       gives a production-scale analog to the NCCL dist-warm result, but at
+       the LLM serving level. Writes `results/vllm_llama3_warm_compare.jsonl`.
+- Output aggregated to `results/final_vllm_llama3.json` for figure generation
+  (Fig 6 in `scripts/make_figures.py`: Llama-3 cold start breakdown vs
+  DistilGPT-2 component breakdown).
 
 ## Repo layout
 
